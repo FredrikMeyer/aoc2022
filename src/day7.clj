@@ -59,7 +59,7 @@
 
 ;; Do a recursive depth first traversal of the directory tree
 ;; to build up :dir-size on all nodes.
-(defn map-tree []
+(defn map-tree [limit dir-comparator]
   (let [tree (build-tree (parse-input test-data))]
     (loop [queue [tree]
            acc tree ;; Goal is to work through whole tree
@@ -74,7 +74,7 @@
         (if (nil? curr) [acc found-directories]
             (cond (= (count sub-dirs) 0)
                   (let [dir-size (sum-files-no-dirs curr)
-                        updated-dirs (if (<= dir-size 100000) (conj found-directories (:path curr)) found-directories)]
+                        updated-dirs (if (dir-comparator dir-size limit) (conj found-directories (:path curr)) found-directories)]
 
                     (recur rest-queue
                            (update-in acc (:path curr)
@@ -83,7 +83,7 @@
                   (= (count not-visited-sub-dirs) 0)
                   (let [dir-size (+ (reduce + (map :dir-size sub-dirs-mapped))
                                     (sum-files-no-dirs curr))
-                        updated-dirs (if (<= dir-size 100000) (conj found-directories (:path curr)) found-directories)]
+                        updated-dirs (if (dir-comparator dir-size limit) (conj found-directories (:path curr)) found-directories)]
                     (recur rest-queue
                            (update-in acc (:path curr)
                                       (fn [old] (assoc old :dir-size dir-size)))
@@ -93,7 +93,17 @@
                     (recur new-queue acc found-directories))))))))
 
 (defn q1 []
-  (let [[mapped found-dirs] (map-tree)
+  (let [[mapped found-dirs] (map-tree 100000 <=)
         ddd (map (fn [p] (get-in mapped p)) found-dirs)
         eee (map :dir-size ddd)]
     (c/sum-seq eee)))
+
+(defn get-total-size [mapped-tree]
+  (:dir-size (get mapped-tree "/")))
+
+(defn q2 []
+  ;; (- 30000000 (- 70000000 (get-total-size (first (map-tree 0 <=))))) ;; free space
+  ;; > 7442399
+  ;; (:dir-size (get-in (first (map-tree 7442399 >=)) ["/" "rvstq" "wrmm" "nlwpspl" "bmmmhnbc"]))
+  ;; Just choose the deepest directory
+  )
