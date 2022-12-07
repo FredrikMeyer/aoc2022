@@ -22,6 +22,8 @@
           ["dir" _ _] {:type :directory :value s}
           :else {:type :unknown})))))
 
+;; Signature: state -> state
+;; Where state loks like this { :current-dir ["/" "b"] :input [<list of commands>] }
 (defn consume [state]
   (let [cmd (first (:input state))
         rest-input (rest (:input state))
@@ -55,6 +57,8 @@
                          c/sum-seq))]
     file-size))
 
+;; Do a recursive depth first traversal of the directory tree
+;; to build up :dir-size on all nodes.
 (defn map-tree []
   (let [tree (build-tree (parse-input test-data))]
     (loop [queue [tree]
